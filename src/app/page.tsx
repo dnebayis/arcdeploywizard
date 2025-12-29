@@ -496,9 +496,8 @@ export default function Home() {
                                             symbol: params.symbol,
                                             address: deployedData.address,
                                             network: 'Arc Testnet',
-                                            url: `https://testnet.arcscan.app/address/${deployedData.address}`,
                                         });
-                                        shareOnTwitter(tweetText, `https://testnet.arcscan.app/address/${deployedData.address}`);
+                                        shareOnTwitter(tweetText, 'https://arc-wizard.vercel.app/');
                                     }}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
