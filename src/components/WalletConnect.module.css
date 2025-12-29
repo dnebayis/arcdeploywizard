@@ -1,0 +1,116 @@
+.connectBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+    outline: none;
+}
+
+.connectBtn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-secondary);
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+}
+
+.wrongNetwork {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--error-soft);
+    border: 1px solid var(--error);
+    border-radius: var(--radius-md);
+    color: var(--error);
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+    outline: none;
+}
+
+.wrongNetwork:hover {
+    background: var(--error);
+    color: white;
+}
+
+.connectedContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.networkBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    transition: var(--transition);
+    outline: none;
+}
+
+.networkBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.accountBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    transition: var(--transition);
+    outline: none;
+}
+
+.accountBtn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-secondary);
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--error);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDot[data-status="connected"] {
+    background: var(--success);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
