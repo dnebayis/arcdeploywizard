@@ -4,9 +4,6 @@ const nextConfig = {
         config.externals.push('pino-pretty', 'lokijs', 'encoding');
         return config;
     },
-    experimental: {
-        turbopack: {}
-    }
 };
 
 export default nextConfig;
