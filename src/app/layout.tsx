@@ -31,6 +31,7 @@ export default function RootLayout({
                 <WagmiProvider config={wagmiConfig}>
                     <QueryClientProvider client={queryClient}>
                         <RainbowKitProvider
+                            initialChain={wagmiConfig.chains[0]}
                             theme={darkTheme({
                                 accentColor: '#3b82f6',
                                 accentColorForeground: 'white',

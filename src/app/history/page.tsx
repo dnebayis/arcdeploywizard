@@ -119,10 +119,10 @@ export default function HistoryPage() {
                         <span className={styles.logoText}>Arc Deploy Wizard</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer" className={styles.faucetLink} title="Get Testnet USDC" style={{ marginRight: '8px', color: 'white' }}>
+                        <WalletConnect />
+                        <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer" className={styles.faucetLink} title="Get Testnet USDC" style={{ color: 'white' }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>water_drop</span>
                         </a>
-                        <WalletConnect />
                     </div>
                 </div>
             </header>
