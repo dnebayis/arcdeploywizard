@@ -46,20 +46,7 @@ export async function deployContract(
         };
     } catch (error: any) {
         console.error('Deployment error:', error);
-
-        if (error.message?.includes('resource not available')) {
-            throw new Error('RPC connection failed. Please check your network connection and try again.');
-        }
-
-        if (error.message?.includes('insufficient funds')) {
-            throw new Error('Insufficient USDC balance for gas fees. Please get testnet USDC from the faucet.');
-        }
-
-        if (error.message?.includes('user rejected')) {
-            throw new Error('Transaction was rejected in your wallet.');
-        }
-
-        throw new Error(error.shortMessage || error.message || 'Contract deployment failed');
+        throw new Error(error.message || 'Contract deployment failed');
     }
 }
 
