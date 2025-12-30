@@ -7,6 +7,7 @@ import { WagmiProvider } from 'wagmi';
 import { wagmiConfig } from '@/lib/wagmi';
 import '@/styles/globals.css';
 import { useState } from 'react';
+import { Analytics } from '@vercel/analytics/next';
 
 import { GlobalFooter } from '@/components/GlobalFooter';
 
@@ -49,6 +50,7 @@ export default function RootLayout({
                         </RainbowKitProvider>
                     </QueryClientProvider>
                 </WagmiProvider>
+                <Analytics />
             </body>
         </html>
     );
