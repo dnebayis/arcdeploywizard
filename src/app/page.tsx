@@ -14,10 +14,11 @@ import { generateShareCard, downloadShareCard } from '@/lib/shareCard';
 import { shareOnTwitter, generateTweetText } from '@/lib/twitter';
 import { saveDeployment } from '@/lib/deployHistory';
 import { WizardShareCard } from '@/components/WizardShareCard';
+import { QuickDeployStep } from '@/components/QuickDeployStep';
 import { useAllowanceScanner } from '@/hooks/useAllowanceScanner';
 import styles from './page.module.css';
 
-type Step = 'landing' | 'select' | 'configure' | 'preview' | 'deploying' | 'success' | 'scanner';
+type Step = 'landing' | 'select' | 'quickDeploy' | 'configure' | 'preview' | 'deploying' | 'success' | 'scanner';
 
 export default function Home() {
     const { isConnected, address } = useAccount();
@@ -27,6 +28,7 @@ export default function Home() {
     const [step, setStep] = useState<Step>('landing');
     const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
     const [params, setParams] = useState<Record<string, string>>({});
+    const [showCustomization, setShowCustomization] = useState(false);
     const [gasData, setGasData] = useState<any>(null);
     const [deployedData, setDeployedData] = useState<{ address: string; txHash: string } | null>(null);
     const [deploying, setDeploying] = useState(false);
@@ -50,11 +52,15 @@ export default function Home() {
 
     const handleSelectContract = async (type: ContractType) => {
         setSelectedContract(type);
-        setParams({});
+        const template = CONTRACT_TEMPLATES[type];
+        setParams(template.defaults || {});
+        setShowCustomization(false);
 
         if (type === 'RISK_SCANNER') {
             if (!address) return;
             setStep('scanner');
+        } else {
+            setStep('quickDeploy');
         }
     };
 
@@ -129,10 +135,16 @@ export default function Home() {
         }
     };
 
+    const handleQuickDeploy = async () => {
+        if (!selectedContract || !publicClient) return;
+        await handlePreview();
+    };
+
     const handleReset = () => {
         setStep('select');
         setSelectedContract(null);
         setParams({});
+        setShowCustomization(false);
         setGasData(null);
         setDeployedData(null);
     };
@@ -192,6 +204,28 @@ export default function Home() {
                             Continue
                         </button>
                     </div>
+                </div>
+            );
+        }
+
+
+        if (step === 'quickDeploy' && selectedContract) {
+            const template = CONTRACT_TEMPLATES[selectedContract];
+
+            return (
+                <div className="fade-in">
+                    <QuickDeployStep
+                        contractName={template.name}
+                        description={(template as any).defaultSummary || template.description}
+                        defaults={params}
+                        paramLabels={template.params}
+                        onQuickDeploy={handleQuickDeploy}
+                        onCustomize={() => {
+                            setShowCustomization(true);
+                            setStep('configure');
+                        }}
+                        onBack={() => setStep('select')}
+                    />
                 </div>
             );
         }
