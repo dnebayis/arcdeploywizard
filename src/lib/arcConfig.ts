@@ -60,12 +60,6 @@ export const CONTRACT_TEMPLATES = {
         name: 'ERC20 Token',
         description: 'Fungible token standard for currencies and points',
         icon: 'token',
-        defaultSummary: 'Deploy a standard ERC20 token with 1,000,000 supply',
-        defaults: {
-            name: 'My Token',
-            symbol: 'MTK',
-            initialSupply: '1000000',
-        },
         params: [
             { name: 'name', type: 'string', label: 'Token Name', placeholder: 'My Token', tooltip: 'Full name of your token' },
             { name: 'symbol', type: 'string', label: 'Symbol', placeholder: 'MTK', tooltip: 'Ticker symbol (3-5 characters)' },
@@ -76,12 +70,7 @@ export const CONTRACT_TEMPLATES = {
         name: 'ERC721 NFT',
         description: 'Non-fungible token standard for unique digital assets',
         icon: 'image',
-        defaultSummary: 'Deploy a standard NFT collection with open minting',
         helperText: 'All NFTs in this collection share the same preview and metadata.',
-        defaults: {
-            name: 'My NFT Collection',
-            symbol: 'MNFT',
-        },
         params: [
             { name: 'name', type: 'string', label: 'Collection Name', placeholder: 'My NFT Collection', tooltip: 'Name of your NFT collection' },
             { name: 'symbol', type: 'string', label: 'Symbol', placeholder: 'MNFT', tooltip: 'Collection ticker symbol (3-5 characters)' },
@@ -91,8 +80,6 @@ export const CONTRACT_TEMPLATES = {
         name: 'Allowance Scanner',
         description: 'Scan and revoke risky ERC20 token allowances',
         icon: 'shield',
-        defaultSummary: 'Scan your wallet for risky token allowances',
-        defaults: {},
         params: [], // No deployment params needed
     },
 } as const;
