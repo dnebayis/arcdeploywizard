@@ -8,28 +8,36 @@ import { GasPreview } from '@/components/GasPreview';
 import { NftPreviewCard } from '@/components/NftPreviewCard';
 import { ArcLogo } from '@/components/ArcLogo';
 import { ContractType, CONTRACT_TEMPLATES, SHARED_NFT_METADATA } from '@/lib/arcConfig';
-import { estimateDeploymentCost, formatConstructorParams } from '@/lib/estimateGas';
-import { deployContract, getContractABI, getContractBytecode } from '@/lib/deploy';
+import { estimateDeploymentCost } from '@/lib/estimateGas';
+import { deployContract } from '@/lib/deploy';
 import { generateShareCard, downloadShareCard } from '@/lib/shareCard';
 import { shareOnTwitter, generateTweetText } from '@/lib/twitter';
 import { saveDeployment } from '@/lib/deployHistory';
 import { WizardShareCard } from '@/components/WizardShareCard';
+import { ConfigurationWizard } from '@/components/ConfigurationWizard';
+import { DeploymentData } from '@/lib/contractFactory';
 import { useAllowanceScanner } from '@/hooks/useAllowanceScanner';
 import styles from './page.module.css';
 
 type Step = 'landing' | 'select' | 'configure' | 'preview' | 'deploying' | 'success' | 'scanner';
 
-export default function Home() {
+export default function Home({ initialContract }: { initialContract?: ContractType }) {
     const { isConnected, address } = useAccount();
     const publicClient = usePublicClient();
     const { data: walletClient } = useWalletClient();
 
-    const [step, setStep] = useState<Step>('landing');
-    const [selectedContract, setSelectedContract] = useState<ContractType | null>(null);
+    const [step, setStep] = useState<Step>(() => {
+        if (initialContract === 'RISK_SCANNER') return 'scanner';
+        if (initialContract) return 'configure';
+        return 'landing';
+    });
+    const [selectedContract, setSelectedContract] = useState<ContractType | null>(initialContract || null);
     const [params, setParams] = useState<Record<string, string>>({});
     const [gasData, setGasData] = useState<any>(null);
     const [deployedData, setDeployedData] = useState<{ address: string; txHash: string } | null>(null);
     const [deploying, setDeploying] = useState(false);
+    const [verifying, setVerifying] = useState(false);
+    const [preparedDeployment, setPreparedDeployment] = useState<DeploymentData | null>(null);
 
 
     const {
@@ -51,6 +59,7 @@ export default function Home() {
     const handleSelectContract = async (type: ContractType) => {
         setSelectedContract(type);
         setParams({});
+        setPreparedDeployment(null);
 
         if (type === 'RISK_SCANNER') {
             if (!address) return;
@@ -59,38 +68,34 @@ export default function Home() {
     };
 
     const handleContinueToParams = () => {
-        if (selectedContract) {
+        if (selectedContract === 'RISK_SCANNER') {
+            setStep('scanner');
+        } else if (selectedContract) {
             setStep('configure');
         }
     };
 
-    const handleParamChange = (name: string, value: string) => {
-        setParams(prev => ({ ...prev, [name]: value }));
-    };
+    const handleConfigComplete = async (data: DeploymentData, options: any) => {
+        setPreparedDeployment(data);
+        setParams(options); // Store params for display/sharing
 
-    const handlePreview = async () => {
-        if (!selectedContract || !publicClient) return;
+        if (!publicClient) return;
+
+        // Calculate gas
+        const estimation = await estimateDeploymentCost(publicClient, data.bytecode);
+        setGasData(estimation);
 
         setStep('preview');
-
-
-        const bytecode = getContractBytecode(selectedContract) as `0x${string}`;
-
-
-        const estimation = await estimateDeploymentCost(publicClient, bytecode);
-        setGasData(estimation);
     };
 
     const handleDeploy = async () => {
-        if (!selectedContract || !walletClient || !publicClient || !gasData) return;
+        if (!selectedContract || !walletClient || !publicClient || !gasData || !preparedDeployment) return;
 
         setDeploying(true);
         setStep('deploying');
 
         try {
-            const abi = getContractABI(selectedContract);
-            const bytecode = getContractBytecode(selectedContract);
-            const constructorArgs = formatConstructorParams(selectedContract, params);
+            const { abi, bytecode, args } = preparedDeployment;
 
             const result = await deployContract(
                 walletClient,
@@ -98,7 +103,7 @@ export default function Home() {
                 selectedContract,
                 abi,
                 bytecode,
-                constructorArgs
+                args
             );
 
             setDeployedData(result);
@@ -129,12 +134,46 @@ export default function Home() {
         }
     };
 
+    const handleVerify = async () => {
+        if (!deployedData || !preparedDeployment) return;
+
+        setVerifying(true);
+        try {
+            // Convert BigInts to strings for JSON payload
+            const argsPayload = preparedDeployment.args.map(arg =>
+                typeof arg === 'bigint' ? arg.toString() : arg
+            );
+
+            const response = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contractAddress: deployedData.address,
+                    args: argsPayload
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Contract verification submitted! It may take a minute to appear on ArcScan.');
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error: any) {
+            console.error('Verification failed:', error);
+            alert(`Verification failed: ${error.message}`);
+        } finally {
+            setVerifying(false);
+        }
+    };
+
     const handleReset = () => {
         setStep('select');
         setSelectedContract(null);
         setParams({});
         setGasData(null);
         setDeployedData(null);
+        setPreparedDeployment(null);
     };
 
     const renderStep = () => {
@@ -198,67 +237,12 @@ export default function Home() {
 
 
         if (step === 'configure' && selectedContract) {
-            const template = CONTRACT_TEMPLATES[selectedContract];
-            const allFieldsFilled = template.params.every(param => params[param.name]?.trim());
-
             return (
-                <div className={`${styles.stepContainer} fade-in`}>
-                    <div className={styles.stepHeader}>
-                        <h2 className={styles.stepTitle}>Configure {template.name}</h2>
-                        <p className={styles.stepDescription}>Set constructor parameters</p>
-                    </div>
-
-
-                    <div className={selectedContract === 'ERC721' ? styles.configLayout : ''}>
-                        <div className={styles.form}>
-                            {template.params.map(param => (
-                                <div key={param.name} className="input-group">
-                                    <label className="input-label">
-                                        {param.label}
-                                        {param.tooltip && (
-                                            <span className="tooltip" title={param.tooltip}>?</span>
-                                        )}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input"
-                                        placeholder={param.placeholder}
-                                        value={params[param.name] || ''}
-                                        onChange={(e) => handleParamChange(param.name, e.target.value)}
-                                    />
-                                    {param.tooltip && (
-                                        <div className={styles.fieldHint}>{param.tooltip}</div>
-                                    )}
-                                </div>
-                            ))}
-                            {'helperText' in template && template.helperText && (
-                                <p className={styles.helperText}>{template.helperText}</p>
-                            )}
-                        </div>
-
-                        {selectedContract === 'ERC721' && (
-                            <div className={styles.previewSection}>
-                                <NftPreviewCard
-                                    name={params.name || 'Unnamed Collection'}
-                                    metadata={SHARED_NFT_METADATA}
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className={styles.stepActions}>
-                        <button className="btn btn-ghost" onClick={() => setStep('select')}>
-                            Back
-                        </button>
-                        <button
-                            className="btn btn-primary"
-                            onClick={handlePreview}
-                            disabled={!allFieldsFilled}
-                        >
-                            Preview Deployment
-                        </button>
-                    </div>
-                </div>
+                <ConfigurationWizard
+                    contractType={selectedContract}
+                    onBack={() => setStep('select')}
+                    onComplete={handleConfigComplete}
+                />
             );
         }
 
@@ -518,12 +502,20 @@ export default function Home() {
                                 View on Explorer
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
                             </a>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={handleVerify}
+                                disabled={verifying}
+                            >
+                                {verifying ? 'Verifying...' : 'Verify on ArcScan'}
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>verified</span>
+                            </button>
                             <button className="btn btn-primary" onClick={handleReset}>
                                 Deploy Another Contract
                             </button>
                         </div>
                     </div>
-                </div >
+                </div>
             );
         }
 
