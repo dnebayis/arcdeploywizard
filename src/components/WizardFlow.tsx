@@ -36,7 +36,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
     const [gasData, setGasData] = useState<any>(null);
     const [deployedData, setDeployedData] = useState<{ address: string; txHash: string } | null>(null);
     const [deploying, setDeploying] = useState(false);
-    const [verifying, setVerifying] = useState(false);
+    // const [verifying, setVerifying] = useState(false); // Removed
     const [preparedDeployment, setPreparedDeployment] = useState<DeploymentData | null>(null);
 
 
@@ -134,38 +134,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
         }
     };
 
-    const handleVerify = async () => {
-        if (!deployedData || !preparedDeployment) return;
-
-        setVerifying(true);
-        try {
-            // Convert BigInts to strings for JSON payload
-            const argsPayload = preparedDeployment.args.map(arg =>
-                typeof arg === 'bigint' ? arg.toString() : arg
-            );
-
-            const response = await fetch('/api/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contractAddress: deployedData.address,
-                    args: argsPayload
-                })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                alert('Contract verification submitted! It may take a minute to appear on ArcScan.');
-            } else {
-                throw new Error(data.error);
-            }
-        } catch (error: any) {
-            console.error('Verification failed:', error);
-            alert(`Verification failed: ${error.message}`);
-        } finally {
-            setVerifying(false);
-        }
-    };
+    // handleVerify removed
 
     const handleReset = () => {
         setStep('select');
@@ -502,14 +471,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                                 View on Explorer
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
                             </a>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={handleVerify}
-                                disabled={verifying}
-                            >
-                                {verifying ? 'Verifying...' : 'Verify on ArcScan'}
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>verified</span>
-                            </button>
+
                             <button className="btn btn-primary" onClick={handleReset}>
                                 Deploy Another Contract
                             </button>
