@@ -1,6 +1,6 @@
 'use client';
-import Home from '../page';
+import { WizardFlow } from '@/components/WizardFlow';
 
 export default function Erc20Page() {
-    return <Home initialContract="ERC20" />;
+    return <WizardFlow initialContract="ERC20" />;
 }

@@ -1,6 +1,6 @@
 'use client';
-import Home from '../page';
+import { WizardFlow } from '@/components/WizardFlow';
 
 export default function AllowancePage() {
-    return <Home initialContract="RISK_SCANNER" />;
+    return <WizardFlow initialContract="RISK_SCANNER" />;
 }
