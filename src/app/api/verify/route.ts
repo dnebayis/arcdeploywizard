@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 const execAsync = util.promisify(exec);
 
@@ -18,15 +19,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Missing address or args' }, { status: 400 });
         }
 
-        // Create a temporary arguments file
+        // Create a temporary arguments file in /tmp (writable in Vercel/Lambda)
         const argsFilename = `arguments-${contractAddress}.js`;
-        const argsPath = path.join(process.cwd(), argsFilename);
+        const argsPath = path.join(os.tmpdir(), argsFilename);
 
         const fileContent = `module.exports = ${JSON.stringify(args)};`;
 
         await fs.promises.writeFile(argsPath, fileContent);
 
-        console.log(`Verifying ${contractAddress} with args in ${argsFilename}...`);
+        console.log(`Verifying ${contractAddress} with args in ${argsPath}...`);
 
         let lastError: any = null;
 
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
                 console.log(`Attempt ${attempt}/${MAX_RETRIES}: Running hardhat verify...`);
 
                 const { stdout, stderr } = await execAsync(
-                    `npx hardhat verify --network arcTestnet --constructor-args ${argsFilename} ${contractAddress}`
+                    `npx hardhat verify --network arcTestnet --constructor-args "${argsPath}" ${contractAddress}`
                 );
 
                 console.log('Verification output:', stdout);
