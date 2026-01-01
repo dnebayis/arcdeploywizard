@@ -21,6 +21,17 @@ export interface DeploymentRecord {
     // Metadata
     deployedBy: string;  // Wallet address
     network: string;     // "Arc Testnet"
+
+    // Constructor arguments (for verification)
+    constructorArgs?: string[];  // Serialized args used in deployment
+
+    // Wizard-generated metadata (single source of truth)
+    wizardMetadata?: {
+        uri: string;
+        image: string;
+        name: string;
+        description: string;
+    };
 }
 
 const HISTORY_KEY = 'arc-wizard-deploy-history';

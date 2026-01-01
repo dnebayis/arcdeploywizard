@@ -2,7 +2,7 @@
  * Tweet content structure
  */
 export interface TweetContent {
-    type: 'ERC20' | 'ERC721';
+    type: 'ERC20' | 'ERC721' | 'ERC1155';
     title: string;       // Name
     symbol?: string;     // Symbol (for ERC20)
     address: string;     // Contract address
@@ -17,14 +17,19 @@ export function generateTweetText(content: TweetContent): string {
     const shortAddress = `${content.address.slice(0, 6)}...${content.address.slice(-4)}`;
 
     // Define Action Label
-    const actionLabel = content.type === 'ERC20'
-        ? 'ERC20 Token Deployed'
-        : 'ERC721 NFT Deployed';
+    let actionLabel: string;
+    let primaryLine: string;
 
-    // Define Primary Line
-    const primaryLine = content.type === 'ERC20'
-        ? `🪙 ${content.title} (${content.symbol || ''})`
-        : `🖼️ ${content.title}`;
+    if (content.type === 'ERC20') {
+        actionLabel = 'ERC20 Token Deployed';
+        primaryLine = `🪙 ${content.title} (${content.symbol || ''})`;
+    } else if (content.type === 'ERC1155') {
+        actionLabel = 'ERC1155 Multi-Token Deployed';
+        primaryLine = `🎨 ${content.title}`;
+    } else {
+        actionLabel = 'ERC721 NFT Deployed';
+        primaryLine = `🖼️ ${content.title}`;
+    }
 
     const tweet = `🚀 ${actionLabel} on ${content.network}
 

@@ -36,7 +36,6 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
     const [gasData, setGasData] = useState<any>(null);
     const [deployedData, setDeployedData] = useState<{ address: string; txHash: string } | null>(null);
     const [deploying, setDeploying] = useState(false);
-    // const [verifying, setVerifying] = useState(false); // Removed
     const [preparedDeployment, setPreparedDeployment] = useState<DeploymentData | null>(null);
 
 
@@ -108,6 +107,10 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
 
             setDeployedData(result);
 
+            // Convert BigInt values to strings for storage
+            const serializableArgs = args.map((arg: any) =>
+                typeof arg === 'bigint' ? arg.toString() : arg
+            );
 
             if (address) {
                 saveDeployment({
@@ -118,11 +121,43 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                     contractName: params.name || 'Contract',
                     tokenSymbol: params.symbol,
                     initialSupply: params.initialSupply,
-                    nftImageUrl: selectedContract === 'ERC721' ? SHARED_NFT_METADATA.image : undefined,
+                    nftImageUrl: (selectedContract === 'ERC721' || selectedContract === 'ERC1155') ? params.image : undefined,
                     deployedBy: address,
                     network: 'Arc Testnet',
+                    constructorArgs: serializableArgs, // Store for verification
+                    wizardMetadata: (selectedContract === 'ERC721' || selectedContract === 'ERC1155') && params.uri ? {
+                        uri: params.uri,
+                        image: params.image || SHARED_NFT_METADATA.image,
+                        name: params.name || '',
+                        description: params.description || ''
+                    } : undefined
                 });
             }
+
+            // Automatically verify contract on ArcScan
+            // Run in background - don't block success screen
+            setTimeout(async () => {
+                try {
+                    console.log('[Auto-Verify] Starting verification for', result.address);
+
+                    const response = await fetch('/api/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contractAddress: result.address,
+                            constructorArgs: serializableArgs  // Use same args as deployment
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        console.log('[Auto-Verify] Success:', data.message);
+                    } else {
+                        console.warn('[Auto-Verify] Failed:', data.error);
+                    }
+                } catch (error) {
+                    console.error('[Auto-Verify] Error:', error);
+                }
+            }, 5000); // Wait 5 seconds for blockchain indexing
 
             setStep('success');
         } catch (error: any) {
@@ -444,7 +479,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                                     onClick={() => {
                                         if (!selectedContract) return;
                                         const tweetText = generateTweetText({
-                                            type: selectedContract === 'ERC721' ? 'ERC721' : 'ERC20',
+                                            type: selectedContract === 'ERC721' ? 'ERC721' : selectedContract === 'ERC1155' ? 'ERC1155' : 'ERC20',
                                             title: params.name || 'New Contract',
                                             symbol: params.symbol,
                                             address: deployedData.address,
@@ -514,11 +549,11 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
             <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
                 {deployedData && selectedContract && (
                     <WizardShareCard
-                        action={selectedContract === 'ERC721' ? 'ERC721 NFT Deployed' : 'ERC20 Token Deployed'}
+                        action={selectedContract === 'ERC721' ? 'ERC721 NFT Deployed' : selectedContract === 'ERC1155' ? 'ERC1155 Multi-Token Deployed' : 'ERC20 Token Deployed'}
                         title={params.name || 'New Contract'}
                         address={deployedData.address}
                         network="Arc Testnet"
-                        imageUrl={selectedContract === 'ERC721' ? SHARED_NFT_METADATA.image : undefined}
+                        imageUrl={(selectedContract === 'ERC721' || selectedContract === 'ERC1155') ? (params.image || SHARED_NFT_METADATA.image) : undefined}
                     />
                 )}
             </div>

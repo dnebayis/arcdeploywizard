@@ -19,6 +19,7 @@ export interface ERC20Options {
 export interface ERC721Options {
     name: string;
     symbol: string;
+    uri?: string;
     owner: string;
     burnable: boolean;
     pausable: boolean;

@@ -664,3 +664,195 @@
     flex-direction: column;
     gap: 4px;
 }
+
+/* ============================================= */
+/* WIZARD LAYOUT - Two Column Configuration    */
+/* ============================================= */
+
+.wizardContainer {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.wizardContent {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 32px;
+    align-items: start;
+}
+
+.wizardForm {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.wizardHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.wizardTitle {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.tabNav {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-secondary);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.tabButton {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tabButton:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tabActive {
+    background: var(--accent) !important;
+    color: white !important;
+}
+
+.tabContent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 32px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    min-height: 400px;
+}
+
+.wizardActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 8px;
+}
+
+.wizardPreview {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.previewHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.previewTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.previewSubtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.featuresSection {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sectionTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.featuresGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ownerAddress {
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+/* Mobile Responsive */
+@media (max-width: 968px) {
+    .wizardContent {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .wizardPreview {
+        position: static;
+        order: -1;
+        /* Preview appears first on mobile */
+    }
+
+    .tabContent {
+        min-height: auto;
+    }
+
+    .wizardActions {
+        justify-content: stretch;
+    }
+
+    .wizardActions button {
+        flex: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .tabNav {
+        flex-direction: column;
+    }
+
+    .tabButton {
+        text-align: left;
+    }
+
+    .wizardTitle {
+        font-size: 24px;
+    }
+
+    .tabContent {
+        padding: 24px 20px;
+    }
+}
