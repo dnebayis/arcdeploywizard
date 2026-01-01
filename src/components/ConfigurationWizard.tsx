@@ -59,7 +59,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
     const [walletMintLimit, setWalletMintLimit] = useState('');
 
     // ERC1155 Specific
-    const [tokenModel, setTokenModel] = useState<TokenModel>('shared');
+
     const [uri, setUri] = useState('');
     const [maxSupplyPerToken, setMaxSupplyPerToken] = useState('');
     const [previewMetadata, setPreviewMetadata] = useState<any>(null);
@@ -163,7 +163,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                 name,
                 uri,
                 owner,
-                tokenModel,
+                tokenModel: 'shared',
                 mintable,
                 burnable,
                 pausable,
@@ -254,12 +254,10 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                     className="input"
                     value={uri}
                     onChange={e => setUri(e.target.value)}
-                    placeholder={contractType === 'ERC1155' && tokenModel === 'perToken' ? 'https://example.com/metadata/{id}.json' : 'https://example.com/metadata.json'}
+                    placeholder="https://example.com/metadata.json"
                 />
                 <div className={styles.fieldHint}>
-                    {contractType === 'ERC1155' && tokenModel === 'perToken'
-                        ? 'URI pattern where {id} is replaced with token ID'
-                        : 'Base URI for the metadata (JSON)'}
+                    Base URI for the metadata (JSON)
                 </div>
 
                 <div style={{ marginTop: '12px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
@@ -362,72 +360,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                 <div className={styles.fieldHint}>Tokens to mint to owner immediately</div>
                             </div>
                         )}
-                        {contractType === 'ERC1155' && (
-                            <>
-                                <div className={styles.featuresSection}>
-                                    <h3 className={styles.sectionTitle}>Token Metadata Model</h3>
-                                    <div style={{ display: 'flex', gap: '12px' }}>
-                                        <label style={{
-                                            display: 'flex',
-                                            alignItems: 'flex-start',
-                                            flex: 1,
-                                            padding: '16px',
-                                            border: tokenModel === 'shared' ? '2px solid var(--accent)' : '1px solid var(--border)',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            background: tokenModel === 'shared' ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            <input
-                                                type="radio"
-                                                name="tokenModel"
-                                                value="shared"
-                                                checked={tokenModel === 'shared'}
-                                                onChange={() => setTokenModel('shared')}
-                                                style={{ marginTop: '2px', marginRight: '12px' }}
-                                            />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 600, marginBottom: '4px', color: 'var(--text-primary)' }}>
-                                                    Shared Metadata
-                                                </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                                                    One base URI for all token IDs
-                                                </div>
-                                            </div>
-                                        </label>
-                                        <label style={{
-                                            display: 'flex',
-                                            alignItems: 'flex-start',
-                                            flex: 1,
-                                            padding: '16px',
-                                            border: tokenModel === 'perToken' ? '2px solid var(--accent)' : '1px solid var(--border)',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            background: tokenModel === 'perToken' ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            <input
-                                                type="radio"
-                                                name="tokenModel"
-                                                value="perToken"
-                                                checked={tokenModel === 'perToken'}
-                                                onChange={() => setTokenModel('perToken')}
-                                                style={{ marginTop: '2px', marginRight: '12px' }}
-                                            />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 600, marginBottom: '4px', color: 'var(--text-primary)' }}>
-                                                    Per-ID Metadata
-                                                </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                                                    URI pattern with {'{id}'} placeholder
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                                {renderUriInput()}
-                            </>
-                        )}
+                        {contractType === 'ERC1155' && renderUriInput()}
                         {contractType === 'ERC721' && renderUriInput()}
                     </>
                 )}
@@ -616,23 +549,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                         {renderFormContent()}
                         <div className={styles.previewSection}>
                             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                {contractType === 'ERC1155' && (
-                                    <div style={{
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        padding: '4px 8px',
-                                        background: 'rgba(139, 92, 246, 0.15)',
-                                        border: '1px solid rgba(139, 92, 246, 0.3)',
-                                        borderRadius: '4px',
-                                        color: 'var(--accent)',
-                                        textAlign: 'center',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.5px',
-                                        marginBottom: '12px'
-                                    }}>
-                                        {tokenModel === 'shared' ? 'Shared Metadata' : 'Per-ID Metadata'}
-                                    </div>
-                                )}
+
                                 <NftPreviewCard
                                     name={name || (contractType === 'ERC1155' ? 'Token Example' : 'Unnamed Collection')}
                                     metadata={{
