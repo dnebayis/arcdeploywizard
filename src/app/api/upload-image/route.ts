@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         // Case 1: File upload
         if (file) {
             const pinataFormData = new FormData();
-            pinataFormData.append('file', file);
+            pinataFormData.append('file', file, file.name);
             pinataFormData.append('pinataMetadata', JSON.stringify({
                 name: file.name || 'nft-image'
             }));

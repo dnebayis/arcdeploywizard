@@ -114,12 +114,26 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
             setPreviewMetadata(null);
             return;
         }
-        const timeoutId = setTimeout(async () => {
+
+        let isMounted = true;
+        const fetchMetadata = async (attempt = 1) => {
             try {
-                const res = await fetch(resolveIpfs(uri));
-                if (!res.ok) throw new Error('Failed to fetch');
+                const resolvedUri = resolveIpfs(uri);
+                if (!resolvedUri.startsWith('http')) return;
+
+                const res = await fetch(resolvedUri);
+                if (!res.ok) {
+                    if (attempt < 3) {
+                        console.log(`Metadata fetch attempt ${attempt} failed, retrying...`);
+                        setTimeout(() => {
+                            if (isMounted) fetchMetadata(attempt + 1);
+                        }, 1000 * attempt);
+                        return;
+                    }
+                    throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+                }
                 const json = await res.json();
-                if (json) {
+                if (json && isMounted) {
                     setPreviewMetadata({
                         ...json,
                         image: resolveIpfs(json.image)
@@ -128,8 +142,13 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
             } catch (e) {
                 console.error('Metadata fetch failed:', e);
             }
-        }, 500);
-        return () => clearTimeout(timeoutId);
+        };
+
+        const timeoutId = setTimeout(() => fetchMetadata(), 1000);
+        return () => {
+            isMounted = false;
+            clearTimeout(timeoutId);
+        };
     }, [uri]);
 
     useEffect(() => {

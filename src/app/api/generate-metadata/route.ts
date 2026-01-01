@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
 
         // 1. Upload Image to Pinata
         const imageFormData = new FormData();
-        imageFormData.append('file', imageFile);
-        imageFormData.append('pinataMetadata', JSON.stringify({ name: `image-${Date.now()}` }));
+        imageFormData.append('file', imageFile, imageFile.name);
+        imageFormData.append('pinataMetadata', JSON.stringify({ name: imageFile.name }));
 
         const imageRes = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
             method: 'POST',
