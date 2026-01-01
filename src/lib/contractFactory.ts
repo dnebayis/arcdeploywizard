@@ -1,5 +1,6 @@
 import { CONFIGURABLEERC20_ABI, CONFIGURABLEERC20_BYTECODE } from './abis/ConfigurableERC20';
 import { CONFIGURABLEERC721_ABI, CONFIGURABLEERC721_BYTECODE } from './abis/ConfigurableERC721';
+import { CONFIGURABLEERC1155_ABI, CONFIGURABLEERC1155_BYTECODE } from './abis/ConfigurableERC1155';
 import { parseUnits } from 'viem';
 
 export type MintAccessMode = 'OnlyOwner' | 'Public' | 'PublicWithWalletLimit';
@@ -24,6 +25,21 @@ export interface ERC721Options {
     maxSupply?: string; // Optional
     mintAccessMode: MintAccessMode;
     walletMintLimit?: string; // Required if PublicWithWalletLimit
+}
+
+export type TokenModel = 'shared' | 'perToken';
+
+export interface ERC1155Options {
+    name: string;
+    uri: string;
+    owner: string;
+    mintable: boolean;
+    burnable: boolean;
+    pausable: boolean;
+    mintAccessMode: MintAccessMode;
+    walletMintLimit?: string;
+    maxSupplyPerToken?: string;
+    tokenModel: TokenModel; // 'shared' or 'perToken'
 }
 
 export interface DeploymentData {
@@ -83,6 +99,39 @@ export function getERC721DeploymentData(options: ERC721Options): DeploymentData 
             maxSupply,
             modeInt,
             walletMintLimit
+        ]
+    };
+}
+
+/**
+ * Prepares deployment arguments for ConfigurableERC1155
+ */
+export function getERC1155DeploymentData(options: ERC1155Options): DeploymentData {
+    const walletMintLimit = options.walletMintLimit ? BigInt(options.walletMintLimit) : 0n;
+    const maxSupplyPerToken = options.maxSupplyPerToken ? BigInt(options.maxSupplyPerToken) : 0n;
+
+    // Map string enum to integer for Solidity
+    // 0: OnlyOwner, 1: Public, 2: PublicWithWalletLimit
+    let modeInt = 0;
+    switch (options.mintAccessMode) {
+        case 'OnlyOwner': modeInt = 0; break;
+        case 'Public': modeInt = 1; break;
+        case 'PublicWithWalletLimit': modeInt = 2; break;
+    }
+
+    return {
+        abi: CONFIGURABLEERC1155_ABI as unknown as any[],
+        bytecode: CONFIGURABLEERC1155_BYTECODE as `0x${string}`,
+        args: [
+            options.name,
+            options.uri,
+            options.owner,
+            options.mintable,
+            options.burnable,
+            options.pausable,
+            modeInt,
+            walletMintLimit,
+            maxSupplyPerToken
         ]
     };
 }

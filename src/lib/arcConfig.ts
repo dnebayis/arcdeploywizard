@@ -76,6 +76,15 @@ export const CONTRACT_TEMPLATES = {
             { name: 'symbol', type: 'string', label: 'Symbol', placeholder: 'MNFT', tooltip: 'Collection ticker symbol (3-5 characters)' },
         ],
     },
+    ERC1155: {
+        name: 'ERC1155 Multi-Token',
+        description: 'Multi-token standard for NFTs, fungibles, and semi-fungibles',
+        icon: 'grid_view',
+        helperText: 'Create multiple token types under a single contract.',
+        params: [
+            { name: 'name', type: 'string', label: 'Collection Name', placeholder: 'My Multi-Token Collection', tooltip: 'Name of your token collection' },
+        ],
+    },
     RISK_SCANNER: {
         name: 'Allowance Scanner',
         description: 'Scan and revoke risky ERC20 token allowances',
