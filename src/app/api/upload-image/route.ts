@@ -2,17 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
     try {
-        const PINATA_JWT = process.env.PINATA_JWT;
+        const PINATA_API_KEY = process.env.PINATA_API_KEY;
+        const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
 
-        console.log('[Upload Image] PINATA_JWT exists:', !!PINATA_JWT);
-        console.log('[Upload Image] PINATA_JWT length:', PINATA_JWT?.length || 0);
+        console.log('[Upload Image] PINATA_KEYS exist:', !!PINATA_API_KEY && !!PINATA_API_SECRET);
 
-        if (!PINATA_JWT) {
+        if (!PINATA_API_KEY || !PINATA_API_SECRET) {
             return NextResponse.json(
-                { success: false, error: 'Pinata configuration missing. Please add PINATA_JWT to .env file' },
+                { success: false, error: 'Pinata configuration missing. Please check .env file' },
                 { status: 500 }
             );
         }
+
+        const headers = {
+            'pinata_api_key': PINATA_API_KEY,
+            'pinata_secret_api_key': PINATA_API_SECRET
+        };
 
         const formData = await req.formData();
         const file = formData.get('file') as File | null;
@@ -22,17 +27,13 @@ export async function POST(req: NextRequest) {
         if (file) {
             const pinataFormData = new FormData();
             pinataFormData.append('file', file);
-
-            const metadata = JSON.stringify({
+            pinataFormData.append('pinataMetadata', JSON.stringify({
                 name: file.name || 'nft-image'
-            });
-            pinataFormData.append('pinataMetadata', metadata);
+            }));
 
             const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${PINATA_JWT}`
-                },
+                headers: headers,
                 body: pinataFormData
             });
 
@@ -51,13 +52,12 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Case 2: Image URL (use as-is or re-upload)
+        // Case 2: Image URL (use as-is)
         if (imageUrl) {
-            // For now, use URL as-is (can be extended to fetch and re-upload)
             return NextResponse.json({
                 success: true,
                 imageUri: imageUrl,
-                imageCid: null // Not uploaded to IPFS
+                imageCid: null
             });
         }
 

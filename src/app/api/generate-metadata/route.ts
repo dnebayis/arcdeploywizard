@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-    const PINATA_JWT = process.env.PINATA_JWT;
+    const PINATA_API_KEY = process.env.PINATA_API_KEY;
+    const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
 
-    if (!PINATA_JWT) {
-        return NextResponse.json({ error: 'Server configuration error: Missing PINATA_JWT' }, { status: 500 });
+    if (!PINATA_API_KEY || !PINATA_API_SECRET) {
+        return NextResponse.json({ error: 'Server configuration error: Missing Pinata API Keys' }, { status: 500 });
     }
 
     try {
@@ -17,6 +18,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No image file provided' }, { status: 400 });
         }
 
+        const headers = {
+            'pinata_api_key': PINATA_API_KEY,
+            'pinata_secret_api_key': PINATA_API_SECRET
+        };
+
         // 1. Upload Image to Pinata
         const imageFormData = new FormData();
         imageFormData.append('file', imageFile);
@@ -24,9 +30,7 @@ export async function POST(req: NextRequest) {
 
         const imageRes = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${PINATA_JWT}`
-            },
+            headers: headers,
             body: imageFormData
         });
 
@@ -48,8 +52,8 @@ export async function POST(req: NextRequest) {
         const metadataRes = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${PINATA_JWT}`
+                ...headers,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 pinataContent: metadata,
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
             metadata: {
                 name,
                 description,
-                image: toGateway(imageCid) // Return gateway URL for preview convenience
+                image: toGateway(imageCid)
             }
         });
 
