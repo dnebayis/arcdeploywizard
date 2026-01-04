@@ -25,6 +25,9 @@ export default function RootLayout({
                 <title>Arc Deploy Wizard</title>
                 <meta name="description" content="Deploy smart contracts on Arc Testnet in minutes" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" type="image/png" href="/favicon.png" />
+                <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+                <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" crossOrigin="anonymous" />
             </head>
             <body>

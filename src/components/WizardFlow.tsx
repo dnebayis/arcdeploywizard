@@ -5,7 +5,6 @@ import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { WalletConnect } from '@/components/WalletConnect';
 import { ContractCard } from '@/components/ContractCard';
 import { GasPreview } from '@/components/GasPreview';
-import { NftPreviewCard } from '@/components/NftPreviewCard';
 import { ArcLogo } from '@/components/ArcLogo';
 import { ContractType, CONTRACT_TEMPLATES, SHARED_NFT_METADATA } from '@/lib/arcConfig';
 import { estimateDeploymentCost } from '@/lib/estimateGas';
@@ -15,11 +14,12 @@ import { shareOnTwitter, generateTweetText } from '@/lib/twitter';
 import { saveDeployment } from '@/lib/deployHistory';
 import { WizardShareCard } from '@/components/WizardShareCard';
 import { ConfigurationWizard } from '@/components/ConfigurationWizard';
+import { RealityCheckStep } from '@/components/RealityCheckStep';
 import { DeploymentData } from '@/lib/contractFactory';
 import { useAllowanceScanner } from '@/hooks/useAllowanceScanner';
 import styles from '@/app/page.module.css';
 
-type Step = 'landing' | 'select' | 'configure' | 'preview' | 'deploying' | 'success' | 'scanner';
+type Step = 'landing' | 'select' | 'configure' | 'reality-check' | 'preview' | 'deploying' | 'success' | 'scanner';
 
 export function WizardFlow({ initialContract }: { initialContract?: ContractType }) {
     const { isConnected, address } = useAccount();
@@ -37,6 +37,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
     const [deployedData, setDeployedData] = useState<{ address: string; txHash: string } | null>(null);
     const [deploying, setDeploying] = useState(false);
     const [preparedDeployment, setPreparedDeployment] = useState<DeploymentData | null>(null);
+    const [realityCheckAcknowledged, setRealityCheckAcknowledged] = useState(false);
 
 
     const {
@@ -78,10 +79,15 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
         setPreparedDeployment(data);
         setParams(options); // Store params for display/sharing
 
-        if (!publicClient) return;
+        // Move to reality check step instead of directly to preview
+        setStep('reality-check');
+    };
+
+    const handleRealityCheckContinue = async () => {
+        if (!publicClient || !preparedDeployment) return;
 
         // Calculate gas
-        const estimation = await estimateDeploymentCost(publicClient, data.bytecode);
+        const estimation = await estimateDeploymentCost(publicClient, preparedDeployment.bytecode);
         setGasData(estimation);
 
         setStep('preview');
@@ -169,8 +175,6 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
         }
     };
 
-    // handleVerify removed
-
     const handleReset = () => {
         setStep('select');
         setSelectedContract(null);
@@ -178,6 +182,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
         setGasData(null);
         setDeployedData(null);
         setPreparedDeployment(null);
+        setRealityCheckAcknowledged(false);
     };
 
     const renderStep = () => {
@@ -204,7 +209,6 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                 </div>
             );
         }
-
 
         if (step === 'select') {
             return (
@@ -239,17 +243,30 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
             );
         }
 
-
         if (step === 'configure' && selectedContract) {
             return (
                 <ConfigurationWizard
                     contractType={selectedContract}
+                    initialValues={params}
                     onBack={() => setStep('select')}
                     onComplete={handleConfigComplete}
                 />
             );
         }
 
+        if (step === 'reality-check' && selectedContract) {
+            return (
+                <RealityCheckStep
+                    contractType={selectedContract}
+                    params={params}
+                    userAddress={address}
+                    acknowledged={realityCheckAcknowledged}
+                    onAcknowledgedChange={setRealityCheckAcknowledged}
+                    onBack={() => setStep('configure')}
+                    onContinue={handleRealityCheckContinue}
+                />
+            );
+        }
 
         if (step === 'preview' && gasData) {
             return (
@@ -268,7 +285,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                     <div className={styles.stepActions}>
                         <button
                             className="btn btn-ghost"
-                            onClick={() => setStep('configure')}
+                            onClick={() => setStep('reality-check')}
                             disabled={deploying}
                         >
                             Back
@@ -277,7 +294,6 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                 </div>
             );
         }
-
 
         if (step === 'scanner') {
             return (
@@ -483,7 +499,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                                             title: params.name || 'New Contract',
                                             symbol: params.symbol,
                                             address: deployedData.address,
-                                            network: 'Arc Testnet',
+                                            network: 'Arc Testnet'
                                         });
                                         shareOnTwitter(tweetText, 'https://arc-wizard.vercel.app/');
                                     }}
@@ -532,9 +548,6 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <a href="/history" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>History</a>
                         <WalletConnect />
-                        <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer" className="btn btn-ghost" title="Get Testnet USDC" style={{ padding: '6px', height: 'auto', color: 'var(--text-primary)' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>water_drop</span>
-                        </a>
                     </div>
                 </div>
             </header>
@@ -549,7 +562,9 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
             <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
                 {deployedData && selectedContract && (
                     <WizardShareCard
-                        action={selectedContract === 'ERC721' ? 'ERC721 NFT Deployed' : selectedContract === 'ERC1155' ? 'ERC1155 Multi-Token Deployed' : 'ERC20 Token Deployed'}
+                        action={
+                            selectedContract === 'ERC721' ? 'ERC721 NFT Deployed' : selectedContract === 'ERC1155' ? 'ERC1155 Multi-Token Deployed' : 'ERC20 Token Deployed'
+                        }
                         title={params.name || 'New Contract'}
                         address={deployedData.address}
                         network="Arc Testnet"

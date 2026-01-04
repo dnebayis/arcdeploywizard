@@ -29,39 +29,52 @@ const resolveIpfs = (url: string) => {
 
 interface ConfigurationWizardProps {
     contractType: ContractType;
+    initialValues?: Record<string, any>;
     onBack: () => void;
     onComplete: (data: DeploymentData, options: any) => void;
 }
 
 type Tab = 'basics' | 'ownership' | 'features';
 
-export function ConfigurationWizard({ contractType, onBack, onComplete }: ConfigurationWizardProps) {
+export function ConfigurationWizard({ contractType, initialValues = {}, onBack, onComplete }: ConfigurationWizardProps) {
     const { address } = useAccount();
-    const [activeTab, setActiveTab] = useState<Tab>('basics');
+    const [activeTab, setActiveTab] = useState<Tab>(initialValues._activeTab || 'basics');
 
     // Common State
-    const [name, setName] = useState('');
-    const [symbol, setSymbol] = useState('');
-    const [owner, setOwner] = useState(address || '');
-    const [isCustomOwner, setIsCustomOwner] = useState(false);
+    const [name, setName] = useState(initialValues.name || '');
+    const [symbol, setSymbol] = useState(initialValues.symbol || '');
+    const [owner, setOwner] = useState(initialValues.owner || address || '');
+    const [isCustomOwner, setIsCustomOwner] = useState(initialValues.isCustomOwner === 'true' || false);
 
     // Features
-    const [burnable, setBurnable] = useState(contractType === 'ERC20');
-    const [pausable, setPausable] = useState(false);
-    const [mintable, setMintable] = useState(true); // ERC20 and ERC1155
+    const [burnable, setBurnable] = useState(
+        initialValues.burnable !== undefined
+            ? initialValues.burnable === true || initialValues.burnable === 'true'
+            : contractType === 'ERC20'
+    );
+    const [pausable, setPausable] = useState(
+        initialValues.pausable !== undefined
+            ? initialValues.pausable === true || initialValues.pausable === 'true'
+            : false
+    );
+    const [mintable, setMintable] = useState(
+        initialValues.mintable !== undefined
+            ? initialValues.mintable === true || initialValues.mintable === 'true'
+            : true
+    ); // ERC20 and ERC1155
 
     // Supply
-    const [initialSupply, setInitialSupply] = useState('1000000'); // ERC20
-    const [maxSupply, setMaxSupply] = useState(''); // Optional for ERC20 and ERC721
+    const [initialSupply, setInitialSupply] = useState(initialValues.initialSupply || '1000000'); // ERC20
+    const [maxSupply, setMaxSupply] = useState(initialValues.maxSupply || ''); // Optional for ERC20 and ERC721
 
     // ERC721/ERC1155 Specific
-    const [mintAccessMode, setMintAccessMode] = useState<MintAccessMode>('Public');
-    const [walletMintLimit, setWalletMintLimit] = useState('');
+    const [mintAccessMode, setMintAccessMode] = useState<MintAccessMode>(initialValues.mintAccessMode || 'Public');
+    const [walletMintLimit, setWalletMintLimit] = useState(initialValues.walletMintLimit || '');
 
     // ERC1155 Specific
 
-    const [uri, setUri] = useState('');
-    const [maxSupplyPerToken, setMaxSupplyPerToken] = useState('');
+    const [uri, setUri] = useState(initialValues.uri || '');
+    const [maxSupplyPerToken, setMaxSupplyPerToken] = useState(initialValues.maxSupplyPerToken || '');
     const [previewMetadata, setPreviewMetadata] = useState<any>(null);
 
     // Generator State
@@ -71,6 +84,8 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
     const [genDescription, setGenDescription] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [genError, setGenError] = useState('');
+
+
 
     const handleGenerate = async () => {
         if (!genImage) {
@@ -176,7 +191,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                 maxSupply: maxSupply || undefined
             };
             const data = getERC20DeploymentData(options);
-            onComplete(data, options);
+            onComplete(data, { ...options, _activeTab: activeTab });
         } else if (contractType === 'ERC1155') {
             const options: ERC1155Options = {
                 name,
@@ -193,7 +208,8 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
             const data = getERC1155DeploymentData(options);
             onComplete(data, {
                 ...options,
-                image: previewMetadata?.image || DEFAULT_METADATA_IMAGE
+                image: previewMetadata?.image || DEFAULT_METADATA_IMAGE,
+                _activeTab: activeTab
             });
         } else {
             const options: ERC721Options = {
@@ -210,7 +226,8 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
             const data = getERC721DeploymentData(options);
             onComplete(data, {
                 ...options,
-                image: previewMetadata?.image || DEFAULT_METADATA_IMAGE
+                image: previewMetadata?.image || DEFAULT_METADATA_IMAGE,
+                _activeTab: activeTab
             });
         }
     };
@@ -346,13 +363,22 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                 {activeTab === 'basics' && (
                     <>
                         <div className="input-group">
-                            <label className="input-label">Contract Name</label>
+                            <label className="input-label">{contractType === 'ERC20' ? 'Token Name' : 'Contract Name'}</label>
                             <input
                                 className="input"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 placeholder={contractType === 'ERC20' ? "My Token" : "My Collection"}
                             />
+                            {contractType === 'ERC20' && (
+                                <div className={styles.fieldHint}>
+                                    The human-readable name of your token.
+                                </div>
+                            )}
+                            <div className={styles.fieldHint}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle' }}>lock</span>
+                                {' '}Cannot be changed after deployment
+                            </div>
                         </div>
                         {contractType !== 'ERC1155' && (
                             <div className="input-group">
@@ -364,6 +390,15 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                     placeholder={contractType === 'ERC20' ? "MTK" : "NFT"}
                                     maxLength={5}
                                 />
+                                {contractType === 'ERC20' && (
+                                    <div className={styles.fieldHint}>
+                                        The ticker symbol used to represent your token.
+                                    </div>
+                                )}
+                                <div className={styles.fieldHint}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle' }}>lock</span>
+                                    {' '}Cannot be changed after deployment
+                                </div>
                             </div>
                         )}
                         {contractType === 'ERC20' && (
@@ -375,8 +410,14 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                     value={initialSupply}
                                     onChange={e => setInitialSupply(e.target.value)}
                                     placeholder="1000000"
+                                    min="0"
                                 />
-                                <div className={styles.fieldHint}>Tokens to mint to owner immediately</div>
+                                <div className={styles.fieldHint}>
+                                    Number of tokens minted at deployment and sent to the owner address.
+                                </div>
+                                <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                                    Decimals are fixed at 18. {mintable && 'Owner can mint additional tokens later if mintable is enabled.'}
+                                </div>
                             </div>
                         )}
                         {contractType === 'ERC1155' && renderUriInput()}
@@ -413,7 +454,10 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                 />
                             )}
                             <div className={styles.fieldHint}>
-                                The owner has special administrative privileges.
+                                The address that owns this contract and has administrative privileges.
+                            </div>
+                            <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                                The owner can {contractType === 'ERC20' && mintable ? 'mint new tokens, ' : ''}{pausable ? 'pause transfers, ' : ''}and transfer ownership.
                             </div>
                         </div>
                     </>
@@ -427,7 +471,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                 {(contractType === 'ERC20' || contractType === 'ERC1155') && (
                                     <FeatureToggle
                                         label="Mintable"
-                                        description={contractType === 'ERC20' ? "Owner can mint more tokens later" : "Allow creating new tokens after deployment"}
+                                        description={contractType === 'ERC20' ? "Allows the owner to mint additional tokens after deployment" : "Allow creating new tokens after deployment"}
                                         icon="add_circle"
                                         checked={mintable}
                                         onChange={setMintable}
@@ -435,14 +479,14 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                 )}
                                 <FeatureToggle
                                     label="Burnable"
-                                    description="Holders can destroy their tokens"
+                                    description={contractType === 'ERC20' ? "Allows token holders to permanently destroy their tokens" : "Holders can destroy their tokens"}
                                     icon="local_fire_department"
                                     checked={burnable}
                                     onChange={setBurnable}
                                 />
                                 <FeatureToggle
                                     label="Pausable"
-                                    description="Owner can freeze all token transfers"
+                                    description={contractType === 'ERC20' ? "Allows the owner to pause and unpause all token transfers" : "Owner can freeze all token transfers"}
                                     icon="pause_circle"
                                     checked={pausable}
                                     onChange={setPausable}
@@ -534,6 +578,7 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
                                 )}
                             </>
                         )}
+
                     </>
                 )}
             </div>
@@ -563,36 +608,133 @@ export function ConfigurationWizard({ contractType, onBack, onComplete }: Config
             </div>
 
             <div style={{ marginTop: '24px' }}>
-                {(contractType === 'ERC721' || contractType === 'ERC1155') ? (
-                    <div className={styles.configLayout}>
-                        {renderFormContent()}
-                        <div className={styles.previewSection}>
-                            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div className={styles.configLayout}>
+                    {renderFormContent()}
+                    <div className={styles.previewSection}>
+                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            {(contractType === 'ERC721' || contractType === 'ERC1155') ? (
+                                <>
+                                    <NftPreviewCard
+                                        name={name || (contractType === 'ERC1155' ? 'Token Example' : 'Unnamed Collection')}
+                                        metadata={{
+                                            ...SHARED_NFT_METADATA,
+                                            name: (contractType === 'ERC1155' || contractType === 'ERC721') && previewMetadata?.name ? previewMetadata.name : undefined,
+                                            image: (contractType === 'ERC1155' || contractType === 'ERC721')
+                                                ? (previewMetadata?.image || DEFAULT_METADATA_IMAGE)
+                                                : SHARED_NFT_METADATA.image,
+                                            description: (contractType === 'ERC1155' || contractType === 'ERC721')
+                                                ? (previewMetadata?.description || 'Collection deployed on Arc.')
+                                                : SHARED_NFT_METADATA.description
+                                        }}
+                                    />
+                                    <p className={styles.helperText} style={{ marginTop: '16px', maxWidth: '300px', textAlign: 'center' }}>
+                                        {contractType === 'ERC1155'
+                                            ? 'Representative token from your multi-token collection'
+                                            : 'All NFTs in this collection share the same preview and metadata'}
+                                    </p>
+                                </>
+                            ) : (
+                                <div style={{
+                                    position: 'sticky',
+                                    top: '24px',
+                                    padding: '24px',
+                                    background: 'var(--bg-secondary)',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--border)',
+                                    width: '100%',
+                                    maxWidth: '320px'
+                                }}>
+                                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                        <span className="material-symbols-outlined" style={{
+                                            fontSize: '48px',
+                                            color: 'var(--accent)',
+                                            display: 'block',
+                                            marginBottom: '12px'
+                                        }}>
+                                            token
+                                        </span>
+                                        <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                            {name || 'ERC20 Token'}
+                                        </h4>
+                                        {symbol && (
+                                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                                {symbol}
+                                            </p>
+                                        )}
+                                    </div>
 
-                                <NftPreviewCard
-                                    name={name || (contractType === 'ERC1155' ? 'Token Example' : 'Unnamed Collection')}
-                                    metadata={{
-                                        ...SHARED_NFT_METADATA,
-                                        name: (contractType === 'ERC1155' || contractType === 'ERC721') && previewMetadata?.name ? previewMetadata.name : undefined,
-                                        image: (contractType === 'ERC1155' || contractType === 'ERC721')
-                                            ? (previewMetadata?.image || DEFAULT_METADATA_IMAGE)
-                                            : SHARED_NFT_METADATA.image,
-                                        description: (contractType === 'ERC1155' || contractType === 'ERC721')
-                                            ? (previewMetadata?.description || 'Collection deployed on Arc.')
-                                            : SHARED_NFT_METADATA.description
-                                    }}
-                                />
-                                <p className={styles.helperText} style={{ marginTop: '16px', maxWidth: '300px', textAlign: 'center' }}>
-                                    {contractType === 'ERC1155'
-                                        ? 'Representative token from your multi-token collection'
-                                        : 'All NFTs in this collection share the same preview and metadata'}
-                                </p>
-                            </div>
+                                    {initialSupply && (
+                                        <div style={{
+                                            padding: '16px',
+                                            background: 'var(--bg-tertiary)',
+                                            borderRadius: '8px',
+                                            marginBottom: '12px'
+                                        }}>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
+                                                Initial Supply
+                                            </div>
+                                            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent)' }}>
+                                                {Number(initialSupply).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                                        <div style={{
+                                            padding: '12px 8px',
+                                            background: 'var(--bg-tertiary)',
+                                            borderRadius: '8px',
+                                            textAlign: 'center'
+                                        }}>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
+                                                Mint
+                                            </div>
+                                            <div style={{ fontSize: '12px', fontWeight: 600, color: mintable ? 'var(--success)' : 'var(--text-tertiary)' }}>
+                                                {mintable ? 'Yes' : 'No'}
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            padding: '12px 8px',
+                                            background: 'var(--bg-tertiary)',
+                                            borderRadius: '8px',
+                                            textAlign: 'center'
+                                        }}>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
+                                                Burn
+                                            </div>
+                                            <div style={{ fontSize: '12px', fontWeight: 600, color: burnable ? 'var(--success)' : 'var(--text-tertiary)' }}>
+                                                {burnable ? 'Yes' : 'No'}
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            padding: '12px 8px',
+                                            background: 'var(--bg-tertiary)',
+                                            borderRadius: '8px',
+                                            textAlign: 'center'
+                                        }}>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
+                                                Pause
+                                            </div>
+                                            <div style={{ fontSize: '12px', fontWeight: 600, color: pausable ? 'var(--success)' : 'var(--text-tertiary)' }}>
+                                                {pausable ? 'Yes' : 'No'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{
+                                        paddingTop: '16px',
+                                        borderTop: '1px solid var(--border)',
+                                        fontSize: '11px',
+                                        color: 'var(--text-tertiary)',
+                                        textAlign: 'center'
+                                    }}>
+                                        Configuration preview
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                ) : (
-                    renderFormContent()
-                )}
+                </div>
             </div>
 
             <div className={styles.stepActions}>

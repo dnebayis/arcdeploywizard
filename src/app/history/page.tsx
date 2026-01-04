@@ -120,9 +120,6 @@ export default function HistoryPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <WalletConnect />
-                        <a href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer" className={styles.faucetLink} title="Get Testnet USDC" style={{ color: 'white' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>water_drop</span>
-                        </a>
                     </div>
                 </div>
             </header>

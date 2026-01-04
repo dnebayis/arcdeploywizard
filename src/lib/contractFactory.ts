@@ -50,7 +50,7 @@ export interface DeploymentData {
 }
 
 /**
- * Prepares deployment arguments for ConfigurableERC20
+ * Standard Mode: Prepares deployment arguments for ConfigurableERC20
  */
 export function getERC20DeploymentData(options: ERC20Options): DeploymentData {
     const initialSupplyEndpoint = parseUnits(options.initialSupply || '0', 18); // Assuming 18 decimals fixed for now, as typical
