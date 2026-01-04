@@ -22,7 +22,7 @@ const DEFAULT_METADATA_IMAGE = 'https://emerald-spotty-boar-761.mypinata.cloud/i
 const resolveIpfs = (url: string) => {
     if (!url) return '';
     if (url.startsWith('ipfs://')) {
-        return url.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/');
+        return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
     }
     return url;
 };
@@ -154,12 +154,21 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                         image: resolveIpfs(json.image)
                     });
                 }
-            } catch (e) {
-                console.error('Metadata fetch failed:', e);
+            } catch (e: any) {
+                // Ignore AbortError and generic network errors (CORS) to avoid console noise
+                if (e.name === 'AbortError') return;
+
+                // Use warn instead of error to avoid Next.js overlay
+                console.warn('Metadata fetch failed:', e.message || e);
+
+                // Don't retry on fatal network/CORS errors
+                if (e.message === 'Failed to fetch') return;
             }
         };
 
-        const timeoutId = setTimeout(() => fetchMetadata(), 1000);
+        const timeoutId = setTimeout(() => {
+            fetchMetadata();
+        }, 500);
         return () => {
             isMounted = false;
             clearTimeout(timeoutId);
@@ -613,7 +622,15 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                     <div className={styles.previewSection}>
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             {(contractType === 'ERC721' || contractType === 'ERC1155') ? (
-                                <>
+                                <div style={{
+                                    position: 'sticky',
+                                    top: '24px',
+                                    width: '100%',
+                                    maxWidth: '360px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '16px'
+                                }}>
                                     <NftPreviewCard
                                         name={name || (contractType === 'ERC1155' ? 'Token Example' : 'Unnamed Collection')}
                                         metadata={{
@@ -627,12 +644,12 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                                 : SHARED_NFT_METADATA.description
                                         }}
                                     />
-                                    <p className={styles.helperText} style={{ marginTop: '16px', maxWidth: '300px', textAlign: 'center' }}>
+                                    <p className={styles.helperText} style={{ marginTop: '0', textAlign: 'center' }}>
                                         {contractType === 'ERC1155'
                                             ? 'Representative token from your multi-token collection'
                                             : 'All NFTs in this collection share the same preview and metadata'}
                                     </p>
-                                </>
+                                </div>
                             ) : (
                                 <div style={{
                                     position: 'sticky',
