@@ -512,6 +512,69 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                             </div>
                         </div>
 
+                        {/* Public Mint Link - Show for NFTs with public minting */}
+                        {(selectedContract === 'ERC721' || selectedContract === 'ERC1155') &&
+                            (params.mintAccessMode === 'Public' || params.mintAccessMode === 'PublicWithWalletLimit') && (
+                                <div className={styles.mintLinkSection}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--accent)' }}>link</span>
+                                        <h3 className={styles.shareSectionTitle} style={{ margin: 0 }}>Public Mint Page</h3>
+                                    </div>
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '16px' }}>
+                                        Your collection allows public minting. Share this link for anyone to mint:
+                                    </p>
+                                    <div style={{
+                                        padding: '12px 16px',
+                                        background: 'var(--bg-secondary)',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        marginBottom: '12px'
+                                    }}>
+                                        <code style={{
+                                            flex: 1,
+                                            fontSize: '13px',
+                                            color: 'var(--text-primary)',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>
+                                            {typeof window !== 'undefined' ? window.location.origin : ''}/mint/{deployedData.address}
+                                        </code>
+                                        <button
+                                            className="btn btn-secondary"
+                                            style={{ padding: '6px 12px', fontSize: '13px' }}
+                                            onClick={() => {
+                                                // Include metadata URI in the link to avoid RPC dependency
+                                                const metadataParam = params.uri ? `?metadata=${encodeURIComponent(params.uri)}` : '';
+                                                const mintUrl = `${window.location.origin}/mint/${deployedData.address}${metadataParam}`;
+                                                navigator.clipboard.writeText(mintUrl);
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>content_copy</span>
+                                            Copy
+                                        </button>
+                                    </div>
+                                    <button
+                                        className="btn btn-secondary"
+                                        style={{ width: '100%' }}
+                                        onClick={() => {
+                                            // Include metadata URI in the link to avoid RPC dependency
+                                            const metadataParam = params.uri ? `?metadata=${encodeURIComponent(params.uri)}` : '';
+                                            const mintUrl = `${window.location.origin}/mint/${deployedData.address}${metadataParam}`;
+                                            const tweetText = `Mint is live 🚀\n${params.name || 'NFT Collection'}\nPublic mint now open on Arc Testnet\n\nMint here 👇\n${window.location.origin}/mint/${deployedData.address}\n\nBuilt with Arc Deploy Wizard`;
+                                            shareOnTwitter(tweetText, mintUrl);
+                                        }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                        </svg>
+                                        Share Mint Link on X
+                                    </button>
+                                </div>
+                            )}
+
                         <div className={styles.successActions}>
                             <a
                                 href={`https://testnet.arcscan.app/address/${deployedData.address}`}

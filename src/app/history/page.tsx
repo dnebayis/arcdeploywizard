@@ -18,6 +18,7 @@ interface EnrichedDeployment {
     wizardType?: string;
     contractName?: string;
     nftImageUrl?: string;
+    metadataUri?: string; // ✅ ADDED: For building mint links
     isWizardDeployed: boolean;
 }
 
@@ -63,6 +64,7 @@ export default function HistoryPage() {
                         wizardType: local?.wizardType,
                         contractName: local?.contractName,
                         nftImageUrl: local?.nftImageUrl,
+                        metadataUri: local?.wizardMetadata?.uri, // ✅ ADDED: Extract metadata URI
                         isWizardDeployed: !!local
                     });
                 });
@@ -79,10 +81,12 @@ export default function HistoryPage() {
                             wizardType: local.wizardType,
                             contractName: local.contractName,
                             nftImageUrl: local.nftImageUrl,
+                            metadataUri: local.wizardMetadata?.uri, // ✅ ADDED
                             isWizardDeployed: true
                         });
                     }
                 });
+
 
                 const sorted = Array.from(mergedMap.values()).sort((a, b) => b.timestamp - a.timestamp);
                 setDeployments(sorted);
@@ -216,15 +220,57 @@ export default function HistoryPage() {
                                         <span className={styles.timeStr}>
                                             {getRelativeTime(deployment.timestamp)}
                                         </span>
-                                        <a
-                                            href={`https://testnet.arcscan.app/address/${deployment.contractAddress}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={styles.explorerBtn}
-                                            title="View on Explorer"
-                                        >
-                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
-                                        </a>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {deployment.isWizardDeployed && deployment.wizardType && (
+                                                <a
+                                                    href={`/manage?address=${deployment.contractAddress}&type=${deployment.wizardType}`}
+                                                    className="btn btn-secondary"
+                                                    style={{ fontSize: '12px', padding: '6px 12px', height: 'auto' }}
+                                                    title="Manage Contract"
+                                                >
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', marginRight: '4px' }}>settings</span>
+                                                    Manage
+                                                </a>
+                                            )}
+                                            {/* Public Mint Link - for ERC721 and ERC1155 only */}
+                                            {deployment.isWizardDeployed &&
+                                                (deployment.wizardType === 'ERC721' || deployment.wizardType === 'ERC1155') && (
+                                                    <button
+                                                        className="btn btn-secondary"
+                                                        style={{ fontSize: '12px', padding: '6px 12px', height: 'auto' }}
+                                                        title="Copy Public Mint Link"
+                                                        onClick={(event) => {
+                                                            // ✅ FIXED: Include metadata URI for RPC-free preview
+                                                            const metadataParam = deployment.metadataUri
+                                                                ? `?metadata=${encodeURIComponent(deployment.metadataUri)}`
+                                                                : '';
+                                                            const mintUrl = `${window.location.origin}/mint/${deployment.contractAddress}${metadataParam}`;
+                                                            navigator.clipboard.writeText(mintUrl);
+                                                            // Show visual feedback
+                                                            const btn = event?.currentTarget as HTMLButtonElement;
+                                                            if (btn) {
+                                                                const originalText = btn.innerHTML;
+                                                                btn.innerHTML = '<span class="material-symbols-outlined" style="fontSize: 16px">check</span>';
+                                                                setTimeout(() => {
+                                                                    btn.innerHTML = originalText;
+                                                                }, 2000);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', marginRight: '4px' }}>link</span>
+                                                        Mint Link
+                                                    </button>
+                                                )}
+                                            <a
+                                                href={`https://testnet.arcscan.app/address/${deployment.contractAddress}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={styles.explorerBtn}
+                                                title="View on Explorer"
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

@@ -25,7 +25,7 @@ contract ConfigurableERC721 is ERC721, Ownable {
     uint256 public immutable walletMintLimit;
     MintAccessMode public immutable mintAccessMode;
     
-    string private constant SHARED_METADATA_URI = "https://emerald-spotty-boar-761.mypinata.cloud/ipfs/bafybeic5wusdlmndycj6vbjigvle3qkdmbwbiqxtmn33m363dr6nd54q2i/metadata.json";
+    string private _baseTokenURI;  // ✅ CHANGED: Dynamic base URI instead of constant
     
     mapping(address => uint256) private _walletMints;
     
@@ -38,6 +38,7 @@ contract ConfigurableERC721 is ERC721, Ownable {
     constructor(
         string memory name,
         string memory symbol,
+        string memory baseURI,  // ✅ ADDED: Accept baseURI parameter
         address owner,
         bool _burnable,
         bool _pausable,
@@ -50,6 +51,7 @@ contract ConfigurableERC721 is ERC721, Ownable {
         maxSupply = _maxSupply;
         mintAccessMode = _mintAccessMode;
         walletMintLimit = _walletMintLimit;
+        _baseTokenURI = baseURI;  // ✅ ADDED: Store user-provided baseURI
     }
     
     function mint() external returns (uint256) {
@@ -104,7 +106,8 @@ contract ConfigurableERC721 is ERC721, Ownable {
     
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         _requireOwned(tokenId);
-        return SHARED_METADATA_URI;
+        // ✅ CHANGED: Return dynamic baseURI instead of hardcoded constant
+        return _baseTokenURI;
     }
     
     function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address) {

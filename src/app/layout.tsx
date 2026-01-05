@@ -25,6 +25,18 @@ export default function RootLayout({
                 <title>Arc Deploy Wizard</title>
                 <meta name="description" content="Deploy smart contracts on Arc Testnet in minutes" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                
+                {/* Open Graph */}
+                <meta property="og:title" content="Arc Deploy Wizard" />
+                <meta property="og:description" content="Deploy ERC20, ERC721, and ERC1155 contracts on Arc Testnet in minutes" />
+                <meta property="og:image" content="https://emerald-spotty-boar-761.mypinata.cloud/ipfs/bafybeic5wusdlmndycj6vbjigvle3qkdmbwbiqxtmn33m363dr6nd54q2i/arc-nft.png" />
+                <meta property="og:type" content="website" />
+                
+                {/* Twitter Card */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Arc Deploy Wizard" />
+                <meta name="twitter:description" content="Deploy ERC20, ERC721, and ERC1155 contracts on Arc Testnet in minutes" />
+                <meta name="twitter:image" content="https://emerald-spotty-boar-761.mypinata.cloud/ipfs/bafybeic5wusdlmndycj6vbjigvle3qkdmbwbiqxtmn33m363dr6nd54q2i/arc-nft.png" />
                 <link rel="icon" type="image/png" href="/favicon.png" />
                 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

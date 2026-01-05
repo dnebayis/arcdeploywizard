@@ -50,7 +50,7 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
     const [burnable, setBurnable] = useState(
         initialValues.burnable !== undefined
             ? initialValues.burnable === true || initialValues.burnable === 'true'
-            : contractType === 'ERC20'
+            : false
     );
     const [pausable, setPausable] = useState(
         initialValues.pausable !== undefined
@@ -60,7 +60,7 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
     const [mintable, setMintable] = useState(
         initialValues.mintable !== undefined
             ? initialValues.mintable === true || initialValues.mintable === 'true'
-            : true
+            : false
     ); // ERC20 and ERC1155
 
     // Supply
@@ -68,7 +68,7 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
     const [maxSupply, setMaxSupply] = useState(initialValues.maxSupply || ''); // Optional for ERC20 and ERC721
 
     // ERC721/ERC1155 Specific
-    const [mintAccessMode, setMintAccessMode] = useState<MintAccessMode>(initialValues.mintAccessMode || 'Public');
+    const [mintAccessMode, setMintAccessMode] = useState<MintAccessMode>(initialValues.mintAccessMode || 'OnlyOwner');
     const [walletMintLimit, setWalletMintLimit] = useState(initialValues.walletMintLimit || '');
 
     // ERC1155 Specific
@@ -302,7 +302,12 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                     placeholder="https://example.com/metadata.json"
                 />
                 <div className={styles.fieldHint}>
-                    Base URI for the metadata (JSON)
+                    {contractType === 'ERC1155'
+                        ? 'Base URI for all token metadata. Use {id} placeholder for token-specific metadata files.'
+                        : 'Base URI that points to token metadata (name, image, attributes).'}
+                </div>
+                <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                    Without metadata, {contractType === 'ERC1155' ? 'tokens' : 'NFTs'} cannot display properly on marketplaces or wallets. Strongly recommended for production.
                 </div>
 
                 <div style={{ marginTop: '12px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
@@ -422,10 +427,12 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                     min="0"
                                 />
                                 <div className={styles.fieldHint}>
-                                    Number of tokens minted at deployment and sent to the owner address.
+                                    Number of tokens created at deployment. Sent to the contract owner address.
                                 </div>
                                 <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
-                                    Decimals are fixed at 18. {mintable && 'Owner can mint additional tokens later if mintable is enabled.'}
+                                    {mintable
+                                        ? 'With mintable enabled, owner can create additional tokens later.'
+                                        : 'This will be the only supply ever created. Minting is disabled.'}
                                 </div>
                             </div>
                         )}
@@ -463,10 +470,12 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                 />
                             )}
                             <div className={styles.fieldHint}>
-                                The address that owns this contract and has administrative privileges.
+                                The address that controls this contract. This address has administrative privileges.
                             </div>
                             <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
-                                The owner can {contractType === 'ERC20' && mintable ? 'mint new tokens, ' : ''}{pausable ? 'pause transfers, ' : ''}and transfer ownership.
+                                {contractType === 'ERC20' && mintable ? 'Can create new tokens. ' : ''}
+                                {pausable ? 'Can pause transfers. ' : ''}
+                                Can transfer ownership to another address.
                             </div>
                         </div>
                     </>
@@ -480,7 +489,9 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                 {(contractType === 'ERC20' || contractType === 'ERC1155') && (
                                     <FeatureToggle
                                         label="Mintable"
-                                        description={contractType === 'ERC20' ? "Allows the owner to mint additional tokens after deployment" : "Allow creating new tokens after deployment"}
+                                        description={contractType === 'ERC20'
+                                            ? "Owner can create additional tokens after deployment. Disable this to make total supply permanently fixed at the initial amount."
+                                            : "Enables creation of new token IDs after deployment. If disabled, only the initial token IDs can exist."}
                                         icon="add_circle"
                                         checked={mintable}
                                         onChange={setMintable}
@@ -488,14 +499,18 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                 )}
                                 <FeatureToggle
                                     label="Burnable"
-                                    description={contractType === 'ERC20' ? "Allows token holders to permanently destroy their tokens" : "Holders can destroy their tokens"}
+                                    description={contractType === 'ERC20'
+                                        ? "Token holders can permanently destroy their own tokens, reducing circulating supply. Cannot be reversed once enabled."
+                                        : "Token holders can permanently destroy their tokens. Common for proof-of-use or redemption mechanics."}
                                     icon="local_fire_department"
                                     checked={burnable}
                                     onChange={setBurnable}
                                 />
                                 <FeatureToggle
                                     label="Pausable"
-                                    description={contractType === 'ERC20' ? "Allows the owner to pause and unpause all token transfers" : "Owner can freeze all token transfers"}
+                                    description={contractType === 'ERC20'
+                                        ? "Owner can freeze all token transfers in emergency situations. Recommended for production deployments that hold user funds."
+                                        : "Owner can freeze all transfers. Critical safety feature for detecting exploits or responding to emergencies."}
                                     icon="pause_circle"
                                     checked={pausable}
                                     onChange={setPausable}
@@ -517,6 +532,16 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                 {maxSupply && initialSupply && Number(maxSupply) < Number(initialSupply) && (
                                     <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
                                         Max supply cannot be less than initial supply ({Number(initialSupply).toLocaleString()})
+                                    </div>
+                                )}
+                                {!maxSupply && (
+                                    <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                                        Without a maximum supply cap, {mintable ? 'the owner can mint unlimited tokens forever' : 'supply is permanently fixed at the initial amount'}.
+                                    </div>
+                                )}
+                                {maxSupply && (
+                                    <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                                        Hard cap of {Number(maxSupply).toLocaleString()} tokens. This limit is permanent and cannot be changed.
                                     </div>
                                 )}
                             </div>
@@ -541,6 +566,21 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                             Enable minting to configure access rules
                                         </div>
                                     )}
+                                    {mintAccessMode === 'OnlyOwner' && (
+                                        <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                                            Only the contract owner can create new tokens. Recommended for controlled releases.
+                                        </div>
+                                    )}
+                                    {mintAccessMode === 'Public' && (
+                                        <div className={styles.fieldHint} style={{ marginTop: '4px', color: '#f59e0b' }}>
+                                            Anyone can mint tokens{contractType === 'ERC1155' ? ' for all token IDs' : ''}. High risk without supply caps. Common for open badge systems.
+                                        </div>
+                                    )}
+                                    {mintAccessMode === 'PublicWithWalletLimit' && (
+                                        <div className={styles.fieldHint} style={{ marginTop: '4px' }}>
+                                            Anyone can mint, but each wallet is limited. Prevents single-address abuse.
+                                        </div>
+                                    )}
                                 </div>
 
                                 {mintAccessMode === 'PublicWithWalletLimit' && (
@@ -553,7 +593,9 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                             onChange={e => setWalletMintLimit(e.target.value)}
                                             placeholder="10"
                                         />
-                                        <div className={styles.fieldHint}>Maximum tokens per wallet address</div>
+                                        <div className={styles.fieldHint}>
+                                            Maximum tokens each wallet can mint{contractType === 'ERC1155' ? ' per token ID' : ''}. Prevents single address from minting excessively.
+                                        </div>
                                     </div>
                                 )}
 
@@ -568,6 +610,14 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                             placeholder="Leave empty for unlimited"
                                             min="0"
                                         />
+                                        <div className={styles.fieldHint}>
+                                            Total NFTs in the collection. Leave empty for unlimited.
+                                        </div>
+                                        {!maxSupply && (
+                                            <div className={styles.fieldHint} style={{ marginTop: '4px', color: '#f59e0b' }}>
+                                                Without a max supply, new NFTs can be minted indefinitely. This may affect scarcity and value.
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -582,15 +632,23 @@ export function ConfigurationWizard({ contractType, initialValues = {}, onBack, 
                                             placeholder="Leave empty for unlimited"
                                             min="0"
                                         />
-                                        <div className={styles.fieldHint}>Each token ID can be minted up to this amount</div>
+                                        <div className={styles.fieldHint}>
+                                            Applies independently to each token ID. For example, with a limit of 100, you can have 100 of token ID #1, 100 of token ID #2, etc.
+                                        </div>
+                                        {!maxSupplyPerToken && (
+                                            <div className={styles.fieldHint} style={{ marginTop: '4px', color: '#f59e0b' }}>
+                                                Without per-token limits, each token ID can be minted infinitely. This is independent of minting access controls.
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </>
                         )}
 
                     </>
-                )}
-            </div>
+                )
+                }
+            </div >
         );
     };
 

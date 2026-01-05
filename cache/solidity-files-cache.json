@@ -1,44 +1,6 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/mehmet/Arc Wizard/contracts/ERC20Template.sol": {
-      "lastModificationDate": 1767018536961,
-      "contentHash": "50b1284179d37f33123afaa3bf04c39c",
-      "sourceName": "contracts/ERC20Template.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SimpleERC20"
-      ]
-    },
     "/Users/mehmet/Arc Wizard/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
       "lastModificationDate": 1767019733689,
       "contentHash": "59dfce11284f2636db261df9b6a18f81",
@@ -724,45 +686,6 @@
         "Ownable"
       ]
     },
-    "/Users/mehmet/Arc Wizard/contracts/ERC721Template.sol": {
-      "lastModificationDate": 1767022227338,
-      "contentHash": "7a2ccba5e7cc5d406a14f50e397b900c",
-      "sourceName": "contracts/ERC721Template.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/access/Ownable.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SimpleERC721"
-      ]
-    },
     "/Users/mehmet/Arc Wizard/node_modules/@openzeppelin/contracts/utils/Base64.sol": {
       "lastModificationDate": 1767019733657,
       "contentHash": "e94470e74f65d3ba43da7bf2ac027b38",
@@ -839,8 +762,8 @@
       ]
     },
     "/Users/mehmet/Arc Wizard/contracts/ConfigurableERC721.sol": {
-      "lastModificationDate": 1767131624307,
-      "contentHash": "fcd6973488ed6104ffab8b4b113733cd",
+      "lastModificationDate": 1767615316329,
+      "contentHash": "b931c39f52d90804d31cf73b083d6dd8",
       "sourceName": "contracts/ConfigurableERC721.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -1419,48 +1342,6 @@
         "Pausable"
       ]
     },
-    "/Users/mehmet/Arc Wizard/contracts/AdvancedERC1155.sol": {
-      "lastModificationDate": 1767346045333,
-      "contentHash": "41adf319255af9af49a2a0b90cdc7b46",
-      "sourceName": "contracts/AdvancedERC1155.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC1155/ERC1155.sol",
-        "@openzeppelin/contracts/access/AccessControl.sol",
-        "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol",
-        "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol",
-        "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "AdvancedERC1155"
-      ]
-    },
     "/Users/mehmet/Arc Wizard/node_modules/@openzeppelin/contracts/access/AccessControl.sol": {
       "lastModificationDate": 1767019733652,
       "contentHash": "d0e2c05f09a3aea7cd299bbd4a435ee2",
@@ -1615,47 +1496,6 @@
         "ERC20Pausable"
       ]
     },
-    "/Users/mehmet/Arc Wizard/contracts/AdvancedERC20.sol": {
-      "lastModificationDate": 1767346013905,
-      "contentHash": "09f28471e43bbc36e22f8ea0613b4640",
-      "sourceName": "contracts/AdvancedERC20.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "@openzeppelin/contracts/access/AccessControl.sol",
-        "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol",
-        "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "AdvancedERC20"
-      ]
-    },
     "/Users/mehmet/Arc Wizard/node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol": {
       "lastModificationDate": 1767019733690,
       "contentHash": "273d8d24b06f67207dd5f35c3a0c1086",
@@ -1770,48 +1610,6 @@
       ],
       "artifacts": [
         "ERC2981"
-      ]
-    },
-    "/Users/mehmet/Arc Wizard/contracts/AdvancedERC721.sol": {
-      "lastModificationDate": 1767346028961,
-      "contentHash": "5cb6464bc5833e7da8cd2a6313bad86d",
-      "sourceName": "contracts/AdvancedERC721.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol",
-        "@openzeppelin/contracts/token/common/ERC2981.sol",
-        "@openzeppelin/contracts/access/AccessControl.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "AdvancedERC721"
       ]
     }
   }

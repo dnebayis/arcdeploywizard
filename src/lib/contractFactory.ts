@@ -94,6 +94,7 @@ export function getERC721DeploymentData(options: ERC721Options): DeploymentData 
         args: [
             options.name,
             options.symbol,
+            options.uri || '', // ✅ ADDED: Pass user-provided URI
             options.owner,
             options.burnable,
             options.pausable,

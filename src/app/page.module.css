@@ -390,6 +390,16 @@
     justify-content: center;
 }
 
+.mintLinkSection {
+    margin-top: 24px;
+    padding: 24px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    width: 100%;
+}
+
+
 .footerLink {
     color: var(--accent);
     text-decoration: none;

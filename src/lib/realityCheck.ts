@@ -65,17 +65,17 @@ export function generateConsequences(facts: ConfigFacts): Consequence[] {
         consequences.push({
             id: 'unlimited-minting',
             severity: 'WARNING',
-            title: 'Unlimited minting enabled',
-            explanation: 'The contract owner can mint any amount of tokens at any time.',
-            tooltip: 'Without a max supply cap, the total supply can grow indefinitely. This affects token economics and scarcity.'
+            title: 'No maximum supply enforced',
+            explanation: 'Contract owner can create unlimited tokens at any time after deployment.',
+            tooltip: 'Total supply can grow indefinitely. This permanently affects token scarcity and economics. Consider setting a max supply cap if token value depends on limited supply.'
         });
     } else if (!facts.isMintable && facts.contractType === 'ERC20') {
         consequences.push({
             id: 'no-minting',
             severity: 'CRITICAL',
-            title: 'Minting permanently disabled',
-            explanation: 'No additional tokens can ever be created after initial supply.',
-            tooltip: 'The total supply is fixed forever. You cannot add tokens later, even if needed.'
+            title: 'Token supply is permanently fixed',
+            explanation: `Total supply locked at ${facts.initialSupply || 'initial amount'}. No additional tokens can ever be created.`,
+            tooltip: 'Minting is permanently disabled. If you need more tokens later for any reason (growth, partnerships, liquidity), you cannot create them. This decision is irreversible.'
         });
     } else if (facts.isMintable && facts.hasMaxSupply) {
         consequences.push({
@@ -91,10 +91,10 @@ export function generateConsequences(facts: ConfigFacts): Consequence[] {
     if (!facts.isPausable) {
         consequences.push({
             id: 'no-pausing',
-            severity: 'WARNING',
-            title: 'Transfers cannot be paused',
-            explanation: 'You will not be able to freeze transfers in case of emergencies.',
-            tooltip: 'Without pause functionality, you cannot stop token transfers if something goes wrong.'
+            severity: 'CRITICAL',
+            title: 'Emergency pause not available',
+            explanation: 'Transfers cannot be frozen. No way to stop activity if security issues are discovered.',
+            tooltip: 'If an exploit is found or security issue emerges, you will not be able to pause token transfers. This is considered critical risk for production deployments.'
         });
     } else {
         consequences.push({
@@ -121,10 +121,10 @@ export function generateConsequences(facts: ConfigFacts): Consequence[] {
     if (facts.isOwnerCustom) {
         consequences.push({
             id: 'custom-owner',
-            severity: 'WARNING',
-            title: 'Admin role assigned to custom address',
-            explanation: 'Control will be given to a different wallet than yours.',
-            tooltip: 'Make absolutely sure you control this address and have verified it is correct.'
+            severity: 'CRITICAL',
+            title: 'Administrative control assigned to different address',
+            explanation: `Contract ownership transferring to ${facts.ownerAddress?.slice(0, 10)}...`,
+            tooltip: 'You are deploying this contract but giving control to a different address. Verify you control this address. Loss of access to the owner address means permanent loss of admin privileges.'
         });
     }
 
@@ -133,10 +133,10 @@ export function generateConsequences(facts: ConfigFacts): Consequence[] {
         if (facts.mintAccessMode === 'Public') {
             consequences.push({
                 id: 'public-minting',
-                severity: 'WARNING',
-                title: 'Public minting enabled',
-                explanation: 'Anyone can mint tokens from this contract.',
-                tooltip: 'Public minting means any wallet can create new NFTs without restrictions.'
+                severity: 'CRITICAL',
+                title: 'Public minting enabled without restrictions',
+                explanation: `Anyone can mint ${facts.contractType === 'ERC1155' ? 'tokens for all token IDs' : 'NFTs'} from this contract.`,
+                tooltip: 'Public minting means any address can create new tokens. Without max supply caps, this creates unlimited supply risk. Only use for open access projects like POAPs or badges.'
             });
         } else if (facts.mintAccessMode === 'OnlyOwner') {
             consequences.push({
@@ -182,29 +182,43 @@ export function generateScenarioHints(facts: ConfigFacts): ScenarioHint[] {
 
     if ((facts.contractType === 'ERC721' || facts.contractType === 'ERC1155') && !facts.hasMetadataUri) {
         hints.push({
-            condition: 'If you plan to list on NFT marketplaces',
-            hint: 'Metadata URI is required for proper display. Consider adding it before deployment.'
+            condition: 'For marketplace integrations',
+            hint: 'OpenSea, Rarible, and other marketplaces require metadata URI to display token information. Tokens without metadata appear blank or broken.'
         });
     }
 
     if (facts.contractType === 'ERC20' && !facts.isMintable && !facts.hasMaxSupply) {
         hints.push({
-            condition: 'If this token is for production use',
-            hint: 'Fixed supply with no minting means you cannot adjust tokenomics later.'
+            condition: 'For production token economics',
+            hint: 'Fixed supply with no minting capability means you cannot respond to demand changes or add liquidity later. Ensure initial supply meets all future needs.'
         });
     }
 
     if (!facts.isPausable) {
         hints.push({
-            condition: 'If something goes wrong after launch',
-            hint: 'You will not be able to freeze transfers or prevent further damage.'
+            condition: 'If security incidents occur',
+            hint: 'Without pause capability, you cannot stop malicious activity or freeze transfers during vulnerability disclosure. Consider enabling pause for production deployments.'
         });
     }
 
     if (facts.isOwnerCustom) {
         hints.push({
-            condition: 'Before deploying',
-            hint: 'Triple-check the custom owner address. Lost access = lost control forever.'
+            condition: 'Before finalizing deployment',
+            hint: 'Verify the owner address multiple times. Use an address from a hardware wallet or multisig for production contracts. Loss of access = permanent loss of control.'
+        });
+    }
+
+    if (facts.mintAccessMode === 'Public' && !facts.hasMaxSupply) {
+        hints.push({
+            condition: 'For public minting without caps',
+            hint: 'This configuration allows unlimited minting by anyone. Only appropriate for free, unlimited access projects (badges, POAPs, attendance tokens).'
+        });
+    }
+
+    if (facts.contractType === 'ERC1155' && facts.mintAccessMode === 'Public') {
+        hints.push({
+            condition: 'For ERC-1155 public minting',
+            hint: 'Public mint access applies to ALL token IDs in this contract. Anyone can mint unlimited quantities unless per-token caps are set.'
         });
     }
 
