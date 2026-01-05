@@ -563,7 +563,7 @@ export function WizardFlow({ initialContract }: { initialContract?: ContractType
                                             // Include metadata URI in the link to avoid RPC dependency
                                             const metadataParam = params.uri ? `?metadata=${encodeURIComponent(params.uri)}` : '';
                                             const mintUrl = `${window.location.origin}/mint/${deployedData.address}${metadataParam}`;
-                                            const tweetText = `Mint is live 🚀\n${params.name || 'NFT Collection'}\nPublic mint now open on Arc Testnet\n\nMint here 👇\n${window.location.origin}/mint/${deployedData.address}\n\nBuilt with Arc Deploy Wizard`;
+                                            const tweetText = `🚀 ${params.name || 'NFT Collection'} is LIVE\n\nMinting now on Arc Testnet ⚡\n\n${window.location.origin}/mint/${deployedData.address}\n\nBuilt with @arc Deploy Wizard`;
                                             shareOnTwitter(tweetText, mintUrl);
                                         }}
                                     >

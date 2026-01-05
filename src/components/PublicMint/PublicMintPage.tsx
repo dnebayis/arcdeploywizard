@@ -438,7 +438,7 @@ export function PublicMintPage({ contractAddress }: PublicMintPageProps) {
 
     const shareOnTwitter = () => {
         const cleanUrl = `${window.location.origin}/mint/${contractAddress}`;
-        const text = `Mint is live 🚀\n${info?.name || 'NFT Collection'}\nPublic mint now open on Arc Testnet\n\nMint here 👇\n${cleanUrl}\n\nBuilt with Arc Deploy Wizard`;
+        const text = `🚀 ${info?.name || 'NFT Collection'} is LIVE\n\nMinting now on Arc Testnet ⚡\n\n${cleanUrl}\n\nBuilt with @arc Deploy Wizard`;
 
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
